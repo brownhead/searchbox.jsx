@@ -22,9 +22,7 @@ root.componentStore.SearchResults = React.createClass({
             children.push(
                 curConfig.component({
                     key: curName,
-                    controller: this.props.controller,
-                    dataset: curConfig,
-                    results: this.props.datasetResults[curName] || [],
+                    config: curConfig,
                 })
             );
         }
@@ -34,114 +32,74 @@ root.componentStore.SearchResults = React.createClass({
 });
 
 root.componentStore.Search = React.createClass({
+    // props.datasetConfigs:object<
+    //     name:str => configuration:object< prop:str => value:any > >
+    // Configuration for each data set.
+
+    // state.ordering:list< name:str >
+    // Defines which result sets, and in which order, are displayed.
+
+    // state.query:str
+    // The currently typed in query (what is displayed to the user)
+
+    getInitialState: function() {
+        // The default ordering is alphabetic
+        var ordering = _.map(this.datasetConfigs, function(v, k) {
+            return k;
+        });
+        ordering.sort();
+
+        return {
+            ordering: ordering,
+            query: "",
+        }
+    },
+
     render: function() {
         return (
             <div>
                 <root.componentStore.SearchInput
-                    controller={this.props.controller} />
+                    // onQueryChanged={this.onQueryChanged.bind(this)}
+                    query={this.state.query} />
                 <root.componentStore.SearchResults
                     query={this.state.query}
-                    controller={this.props.controller}
                     datasetConfigs={this.props.datasetConfigs}
-                    datasetResults={this.props.datasetResults}
-                    ordering={this.props.ordering} />
+                    ordering={this.state.ordering} />
             </div>
         );
     }
 });
 
-root.Controller = function($container, datasetConfigs) {
-    var self = this;
-
-    if ($container.length != 1) {
-        throw Error("$container must contain a single element.");
-    }
-
-    // object< name:str => configuration:object< prop:str => value:any > >
-    // Configuration for each data set.
-    self.datasetConfigs = datasetConfigs;
-
-    // object< name:str => results:list<any> >
-    // The actual results we are or will be displaying.
-    self.datasetResults = {};
-
-    // list< name:str >
-    // Defines which result sets, and in which order, are displayed.
-    self.ordering = _.map(self.datasetConfigs, function(v, k) { return k; });
-
-    self.render = function() {
-        self.component = React.renderComponent(
-            <root.componentStore.Search
-                controller={self}
-                datasetConfigs={self.datasetConfigs}
-                datasetResults={self.datasetResults}
-                ordering={self.ordering} />,
-            $container[0]
-        );
-    };
-
-    self.setOrdering = function(ordering) {
-        self.ordering = ordering;
-        self.render();
-    }
-
-    self.setDatasetResults = function(name, results) {
-        if (!self.datasetConfigs.hasOwnProperty(name)) {
-            throw Error("Unknown dataset with name '" + name + "'");
-        }
-        self.datasetResults[name] = results;
-        self.render();
-    }
-}
-
 ///////////////
 // USER LAND //
 ///////////////
 
-var BlaFooter = React.createClass({
-    didMount: function() {
-        this.props.controller.selectManager.curSelection.username -> magicthing
-        this.props.controller.listen("custom:updateFooter", this.updateMaybe);
-    },
+// var BlaItem = React.createClassWithMixin(MagicItem, {
+//     root_onSelect: function() {
+//         this.props.controller.components["footer"].updateMaybe();
+//     }
 
-    updateMaybe: function() {
-        for each of ["async1", "async2", "async3"] in \
-                this.props.controller.components:
-            if still_going:
-                show_spinner
-                return
-
-        show_not_spinner
-    }
-});
-
-var BlaItem = React.createClassWithMixin(MagicItem, {
-    root_onSelect: function() {
-        this.props.controller.components["footer"].updateMaybe();
-    }
-
-    render: function() {
-        return <a href="#">adsf</a>
-    }
-});
+//     render: function() {
+//         return <a href="#">adsf</a>
+//     }
+// });
 
 var Bla = React.createClass({
-    onPropsChange: function(event) {
-        console.log("searching for " + this.props.controller.query);
+    // onPropsChange: function(event) {
+    //     console.log("searching for " + this.props.controller.query);
 
-        // bloodhound_go(this.props.controller.query, function(datums) {
-        //     this.props.controller.setDatasetResults("suggestions", datums);
-        //     this.props.controller.dispatchEvent("custom:updateFooter")
-        //     // this.props.controller.components["footer"].updateMaybe();
-        // });
-    },
+    //     // bloodhound_go(this.props.controller.query, function(datums) {
+    //     //     this.props.controller.setDatasetResults("suggestions", datums);
+    //     //     this.props.controller.dispatchEvent("custom:updateFooter")
+    //     //     // this.props.controller.components["footer"].updateMaybe();
+    //     // });
+    // },
 
     render: function() {
-        controller.query ->
         return (
             <ul>
                 {this.props.results.map(function(result) {
-                    return <BlaItem controller={this.props.controller}/>
+                    return <li>{result}</li>
                 })}
             </ul>
         );
@@ -149,13 +107,13 @@ var Bla = React.createClass({
 });
 
 var datasetConfigs = {
-    async1: {component: Bla},
-    async2: {component: Bla},
-    async3: {component: Bla},
-    footer: {component: BlaFooter},
+    suggestions: {component: Bla},
+    footer: {component: Bla},
 };
 
-var myController = new root.Controller($("#search-bar"), datasetConfigs);
-myController.render();
+React.renderComponent(
+    <root.componentStore.Search datasetConfigs={datasetConfigs} />,
+    document.getElementById("search-bar")
+);
 
-myController.setDatasetResults("suggestions", ["hi", "bob"])
+// myController.setDatasetResults("suggestions", ["hi", "bob"])
