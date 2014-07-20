@@ -33,8 +33,6 @@ var StatesDataset = React.createClass({
                         var isSelected = this.props.highlightedIndex === i;
                         var className = isSelected ? "selected" : "";
 
-                        console.log(this.state.results[i]);
-
                         renderedResults.push(
                             <a href="#" onMouseOver={this.getHoverHandler(i)}
                                     className={className}>
