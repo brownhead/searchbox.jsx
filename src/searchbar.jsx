@@ -6,6 +6,18 @@ var root = {};
 
 root.componentStore = {};
 root.mixins = {};
+root.utils = {}
+
+root.utils.matchCase = function(matchWith, str) {
+    var len = Math.min(matchWith.length, str.length);
+
+    var newStr = [];
+    for (var i = 0; i < len; ++i) {
+        if (matchWith[i] !== str[i]) {
+
+        }
+    }
+};
 
 root.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {
@@ -23,18 +35,34 @@ root.componentStore.SearchInput = React.createClass({
         this.props.controller.setState({"query": event.target.value});
     },
 
-    shouldShowFaded: function() {
-        if (this.props.fadedText.length < this.props.query.length) {
-            return false;
+    prepareFaded: function() {
+        var query = this.props.query;
+        var fadedText = this.props.fadedText;
+
+        if (query.length > fadedText.length) {
+            return null;
         }
 
-        for (var i = 0; i < this.props.query.length; ++i) {
-            if (this.props.fadedText[i] !== this.props.query[i]) {
-                return false;
+        var len = Math.min(query.length, fadedText.length);
+
+        var newFadedText = [];
+        for (var i = 0; i < len; ++i) {
+            if (query[i] === fadedText[i]) {
+                newFadedText.push(query[i]);
+            } else if (query[i] === fadedText[i].toLowerCase()) {
+                newFadedText.push(fadedText[i].toLowerCase());
+            } else if (query[i] === fadedText[i].toUpperCase()) {
+                newFadedText.push(fadedText[i].toUpperCase());
+            } else {
+                return null;
             }
         }
 
-        return true;
+        for (; i < fadedText.length; ++i) {
+            newFadedText.push(fadedText[i]);
+        }
+
+        return newFadedText.join("");
     },
 
     render: function() {
@@ -50,13 +78,14 @@ root.componentStore.SearchInput = React.createClass({
                 style={{position: "absolute", background: "transparent", zIndex: 2}} />
         );
 
-        if (this.shouldShowFaded()) {
+        var preparedFadedText = this.prepareFaded();
+        if (preparedFadedText) {
             inputs.push(
                 <input
                     key="faded"
                     className="searchbar-faded-input"
                     type="text"
-                    value={this.props.fadedText}
+                    value={preparedFadedText}
                     readOnly
                     style={{color: "#CCC", position: "absolute", background: "transparent", zIndex: 1}} />
             );
