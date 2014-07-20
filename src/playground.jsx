@@ -1,11 +1,13 @@
 /** @jsx React.DOM */
 
-var searchbar = {};
+var searchbar = (function () { // beginning of module
 
-searchbar.componentStore = {};
-searchbar.mixins = {};
+var root = {};
 
-searchbar.componentStore.SearchInput = React.createClass({
+root.componentStore = {};
+root.mixins = {};
+
+root.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {
         if (event.key === "ArrowDown") {
             this.props.controller.setHighlightedItemRelative(true);
@@ -41,7 +43,7 @@ searchbar.componentStore.SearchInput = React.createClass({
     }
 });
 
-searchbar.componentStore.Search = React.createClass({
+root.componentStore.Search = React.createClass({
     getInitialState: function() {
         // The default ordering is alphabetic
         var ordering = _.map(this.props.datasetConfigs, function(v, k) {
@@ -154,7 +156,7 @@ searchbar.componentStore.Search = React.createClass({
 
         return (
             <div>
-                <searchbar.componentStore.SearchInput
+                <root.componentStore.SearchInput
                     ref="input"
                     controller={this}
                     query={this.state.query}
@@ -167,7 +169,7 @@ searchbar.componentStore.Search = React.createClass({
     }
 });
 
-searchbar.mixins.BaseDataset = {
+root.mixins.BaseDataset = {
     getHoverHandler: function(index) {
         var that = this;
         return function() {
@@ -177,7 +179,7 @@ searchbar.mixins.BaseDataset = {
     }
 };
 
-searchbar.mixins.BloodhoundDataset = function(source, setFadedText) { return {
+root.mixins.BloodhoundDataset = function(source, setFadedText) { return {
     getInitialState: function() {
         return {
             results: [],
@@ -204,76 +206,5 @@ searchbar.mixins.BloodhoundDataset = function(source, setFadedText) { return {
     },
 }};
 
-///////////////
-// USER LAND //
-///////////////
-
-var substringMatcher = function(strs) {
-  return function findMatches(q, cb) {
-    var matches, substrRegex;
-
-    // an array that will be populated with substring matches
-    matches = [];
-
-    // regex used to determine if a string contains the substring `q`
-    substrRegex = new RegExp(q, 'i');
-
-    // iterate through the pool of strings and for any string that
-    // contains the substring `q`, add it to the `matches` array
-    $.each(strs, function(i, str) {
-      if (substrRegex.test(str)) {
-        // the typeahead jQuery plugin expects suggestions to a
-        // JavaScript object, refer to typeahead docs for more info
-        matches.push({ value: str });
-      }
-    });
-
-    cb(matches);
-  };
-};
-
-var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-  'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
-  'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
-  'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
-  'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-  'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
-  'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
-  'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
-];
-var hound = substringMatcher(states);
-
-var StatesDataset = React.createClass({
-    mixins: [
-        searchbar.mixins.BaseDataset,
-        searchbar.mixins.BloodhoundDataset(hound, true)],
-
-    render: function() {
-        var renderedResults = [];
-        for (var i = 0; i < this.state.results.length; ++i) {
-            var isSelected = this.props.highlightedIndex === i;
-            var className = isSelected ? "selected" : "";
-
-            renderedResults.push(
-                <a href="#" onMouseOver={this.getHoverHandler(i)}
-                        className={className}>
-                    {this.state.results[i]}</a>
-            );
-        }
-
-        this.numItems = this.state.results.length;
-
-        return <ul>{renderedResults}</ul>;
-    }
-});
-
-var datasetConfigs = {
-    states: {component: StatesDataset},
-    tacos: {component: StatesDataset},
-};
-
-React.renderComponent(
-    searchbar.componentStore.Search({datasetConfigs: datasetConfigs}),
-    document.getElementById("search-bar")
-);
+return root;
+})(); // end of module
