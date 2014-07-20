@@ -40,42 +40,6 @@ root.componentStore.SearchInput = React.createClass({
     }
 });
 
-root.componentStore.SearchDropdown = React.createClass({
-    render: function() {
-        var children = [];
-        for (var i = 0; i < this.props.ordering.length; ++i) {
-            var curName = this.props.ordering[i];
-            var curConfig = this.props.datasetConfigs[curName];
-            if (!curConfig) {
-                throw Error("Unknown dataset " + curName + " in ordering.");
-            }
-
-            var highlightedIndex = -1;
-            if (this.props.highlightedItem &&
-                    curName === this.props.highlightedItem.datasetName) {
-                highlightedIndex = this.props.highlightedItem.index;
-            }
-
-            children.push(
-                curConfig.component({
-                    ref: curName,
-                    key: curName,
-                    controller: this.props.controller,
-                    config: curConfig,
-                    query: this.props.query,
-                    highlightedIndex: highlightedIndex,
-                })
-            );
-        }
-
-        return <div>{children}</div>;
-    },
-
-    getDatasetComponentByName: function(name) {
-        return this.refs[name] || null;
-    },
-});
-
 root.componentStore.Search = React.createClass({
     // props.datasetConfigs:object<
     //     name:str => configuration:object< prop:str => value:any > >
@@ -105,8 +69,7 @@ root.componentStore.Search = React.createClass({
         var that = this;
 
         var numItemsIn = function(name) {
-            return (that.refs.dropdown
-                .getDatasetComponentByName(name).numItems);
+            return that.refs["dataset_" + name].numItems;
         };
 
         var findNextDataset = function(start) {
@@ -176,6 +139,32 @@ root.componentStore.Search = React.createClass({
     },
 
     render: function() {
+        var datasets = [];
+        for (var i = 0; i < this.state.ordering.length; ++i) {
+            var curName = this.state.ordering[i];
+            var curConfig = this.props.datasetConfigs[curName];
+            if (!curConfig) {
+                throw Error("Unknown dataset " + curName + " in ordering.");
+            }
+
+            var highlightedIndex = -1;
+            if (this.state.highlightedItem &&
+                    curName === this.state.highlightedItem.datasetName) {
+                highlightedIndex = this.state.highlightedItem.index;
+            }
+
+            datasets.push(
+                curConfig.component({
+                    ref: "dataset_" + curName,
+                    key: curName,
+                    controller: this,
+                    config: curConfig,
+                    query: this.state.query,
+                    highlightedIndex: highlightedIndex,
+                })
+            );
+        }
+
         return (
             <div>
                 <root.componentStore.SearchInput
@@ -183,13 +172,9 @@ root.componentStore.Search = React.createClass({
                     controller={this}
                     query={this.state.query}
                     fadedText={this.state.fadedText} />
-                <root.componentStore.SearchDropdown
-                    ref="dropdown"
-                    controller={this}
-                    query={this.state.query}
-                    datasetConfigs={this.props.datasetConfigs}
-                    ordering={this.state.ordering}
-                    highlightedItem={this.state.highlightedItem} />
+                <div>
+                    {datasets}
+                </div>
             </div>
         );
     }
