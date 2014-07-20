@@ -10,6 +10,9 @@ root.componentStore.SearchInput = React.createClass({
             this.props.controller.setHighlightedItemRelative(true);
         } else if (event.key === "ArrowUp") {
             this.props.controller.setHighlightedItemRelative(false);
+        } else if (event.key === "Tab" && this.props.fadedText) {
+            event.preventDefault();
+            this.props.controller.onQueryChanged(this.props.fadedText);
         }
     },
 
@@ -22,6 +25,7 @@ root.componentStore.SearchInput = React.createClass({
             <div style={{height: 30, width: 100}}>
                 <input
                     type="text"
+                    value={this.props.query}
                     onKeyDown={this.onKeyDown}
                     onChange={this.queryChanged}
                     style={{position: "absolute", background: "transparent", zIndex: 2}} />
