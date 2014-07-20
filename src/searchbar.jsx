@@ -6,18 +6,18 @@ var root = {};
 
 root.componentStore = {};
 root.mixins = {};
-root.utils = {}
+root.utils = {};
 
-root.utils.matchCase = function(matchWith, str) {
-    var len = Math.min(matchWith.length, str.length);
-
-    var newStr = [];
-    for (var i = 0; i < len; ++i) {
-        if (matchWith[i] !== str[i]) {
-
-        }
+root.utils.highlight = function highlight(str, tokens, startTag, endTag) {
+    // http://stackoverflow.com/a/6969486
+    function escapeRegExp(str) {
+      return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     }
-};
+
+    var escapedTokens = tokens.map(escapeRegExp);
+    var re = new RegExp(escapedTokens.join("|"), "gi");
+    return str.replace(re, startTag + "$&" + endTag);
+}
 
 root.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {

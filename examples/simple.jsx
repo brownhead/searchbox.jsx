@@ -23,34 +23,43 @@ var stateHound = new Bloodhound({
 stateHound.initialize();
 
 var StatesDataset = React.createClass({
-        mixins: [
-                searchbar.mixins.BaseDataset,
-                searchbar.mixins.BloodhoundDataset(stateHound.ttAdapter(), true)],
+    mixins: [
+        searchbar.mixins.BaseDataset,
+        searchbar.mixins.BloodhoundDataset(stateHound.ttAdapter(), true)],
 
-        render: function() {
-                var renderedResults = [];
-                for (var i = 0; i < this.state.results.length; ++i) {
-                        var isSelected = this.props.highlightedIndex === i;
-                        var className = isSelected ? "selected" : "";
+    render: function() {
+        var renderedResults = [];
+        for (var i = 0; i < this.state.results.length; ++i) {
+            var isSelected = this.props.highlightedIndex === i;
+            var className = isSelected ? "selected" : "";
 
-                        renderedResults.push(
-                            <a href="#" onMouseOver={this.getHoverHandler(i)}
-                                    className={className}>
-                                {this.state.results[i]}</a>
-                        );
-                }
+            var highlighted = searchbar.utils.highlight(
+                this.state.results[i].value,
+                Bloodhound.tokenizers.whitespace(this.props.query),
+                "<b>",
+                "</b>"
+            );
 
-                this.numItems = this.state.results.length;
-
-                return <div>{renderedResults}</div>;
+            renderedResults.push(
+                <a
+                    href="#"
+                    onMouseOver={this.getHoverHandler(i)}
+                    className={className}
+                    dangerouslySetInnerHTML={{__html: highlighted}}></a>
+            );
         }
+
+        this.numItems = this.state.results.length;
+
+        return <div>{renderedResults}</div>;
+    }
 });
 
 var datasetConfigs = {
-        states: {component: StatesDataset},
+    states: {component: StatesDataset},
 };
 
 React.renderComponent(
-        searchbar.componentStore.Search({datasetConfigs: datasetConfigs}),
-        document.getElementById("searchbar-the-basics")
+    searchbar.componentStore.Search({datasetConfigs: datasetConfigs}),
+    document.getElementById("searchbar-the-basics")
 );
