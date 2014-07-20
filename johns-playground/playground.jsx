@@ -2,7 +2,7 @@
 
 var root = {};
 
-root.componentStore = [];
+root.componentStore = {};
 
 root.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {
@@ -238,7 +238,6 @@ var StatesDataset = React.createClass({
     // },
 
     componentWillReceiveProps: function(nextProps) {
-        console.log(nextProps);
         if (this.props.query != nextProps.query) {
             this.doQuery();
         }
@@ -266,7 +265,6 @@ var StatesDataset = React.createClass({
 
             var that = this;
             var hover = (function(index, event) {
-                console.log(that.props.key, index);
                 that.props.controller.setHighlightedItem(that.props.key, index);
             }).bind(this, i);
 
