@@ -3,6 +3,7 @@
 var root = {};
 
 root.componentStore = {};
+root.mixins = {};
 
 root.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {
@@ -134,10 +135,6 @@ root.componentStore.Search = React.createClass({
         }
     },
 
-    setHighlightedItem: function(name, index) {
-        this.setState({highlightedItem: {datasetName: name, index: index}});
-    },
-
     render: function() {
         var datasets = [];
         for (var i = 0; i < this.state.ordering.length; ++i) {
@@ -180,6 +177,33 @@ root.componentStore.Search = React.createClass({
     }
 });
 
+root.mixins.BloodhoundDataset = function(source, setFadedText) { return {
+    getInitialState: function() {
+        return {
+            results: [],
+        };
+    },
+
+    componentDidUpdate: function(prevProps, prevState) {
+        if (this.props.query != prevProps.query) {
+            this.doQuery();
+        }
+    },
+
+    setResults: function(results) {
+        this.setState({results: results});
+        if (setFadedText && results.length > 0) {
+            this.props.controller.setState({fadedText: results[0].value});
+        } else {
+            this.props.controller.setState({fadedText: ""});
+        }
+    },
+
+    doQuery: function() {
+        source(this.props.query, this.setResults);
+    },
+}};
+
 ///////////////
 // USER LAND //
 ///////////////
@@ -221,30 +245,7 @@ var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
 var hound = substringMatcher(states);
 
 var StatesDataset = React.createClass({
-    componentDidUpdate: function(prevProps, prevState) {
-        if (this.props.query != prevProps.query) {
-            this.doQuery();
-        }
-    },
-
-    getInitialState: function() {
-        return {
-            results: [],
-        };
-    },
-
-    setResults: function(results) {
-        this.setState({results: results});
-        if (results.length > 0 && results[0].value.indexOf(this.props.query) === 0) {
-            this.props.controller.setState({fadedText: results[0].value});
-        } else {
-            this.props.controller.setState({fadedText: ""});
-        }
-    },
-
-    doQuery: function() {
-        hound(this.props.query, this.setResults);
-    },
+    mixins: [root.mixins.BloodhoundDataset(hound, true)],
 
     render: function() {
         var renderedResults = [];
