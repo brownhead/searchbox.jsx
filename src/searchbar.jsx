@@ -4,7 +4,8 @@ var searchbar = (function () { // beginning of module
 
 var root = {};
 
-root.componentStore = {};
+root.components = {};
+root.datasets = {};
 root.mixins = {};
 root.utils = {};
 
@@ -19,7 +20,7 @@ root.utils.highlight = function highlight(str, tokens, startTag, endTag) {
     return str.replace(re, startTag + "$&" + endTag);
 }
 
-root.componentStore.SearchInput = React.createClass({
+root.components.SearchInput = React.createClass({
     onKeyDown: function(event) {
         if (event.key === "ArrowDown") {
             this.props.controller.setHighlightedItemRelative(true);
@@ -100,7 +101,7 @@ root.componentStore.SearchInput = React.createClass({
     }
 });
 
-root.componentStore.Search = React.createClass({
+root.components.Search = React.createClass({
     getInitialState: function() {
         // The default ordering is alphabetic
         var ordering = _.map(this.props.datasetConfigs, function(v, k) {
@@ -225,7 +226,7 @@ root.componentStore.Search = React.createClass({
         }
         return (
             <div className="searchbar-container">
-                <root.componentStore.SearchInput
+                <root.components.SearchInput
                     ref="input"
                     controller={this}
                     query={this.state.query}
@@ -277,6 +278,44 @@ root.mixins.BloodhoundDataset = function(source, setFadedText) { return {
         source(this.props.query, this.setResults);
     },
 }};
+
+root.datasets.SimpleBloodhound = function(source, setFadedText) {
+    return React.createClass({
+        mixins: [
+            root.mixins.BaseDataset,
+            root.mixins.BloodhoundDataset(source, setFadedText)],
+
+        render: function() {
+            var renderedResults = [];
+            for (var i = 0; i < this.state.results.length; ++i) {
+                var isSelected = this.props.highlightedIndex === i;
+                var className = isSelected ? "selected" : "";
+
+                var highlighted = root.utils.highlight(
+                    this.state.results[i].value,
+                    Bloodhound.tokenizers.whitespace(this.props.query),
+                    "<b>",
+                    "</b>"
+                );
+
+                renderedResults.push(
+                    <div className="searchbar-result">
+                        <a
+                            key={this.state.results[i].key}
+                            href={this.state.results[i].href}
+                            onMouseOver={this.getHoverHandler(i)}
+                            className={className}
+                            dangerouslySetInnerHTML={{__html: highlighted}} />
+                    </div>
+                );
+            }
+
+            this.numItems = this.state.results.length;
+
+            return <div>{renderedResults}</div>;
+        }
+    });
+}
 
 return root;
 })(); // end of module

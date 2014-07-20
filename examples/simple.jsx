@@ -16,50 +16,26 @@ var stateHound = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
     queryTokenizer: Bloodhound.tokenizers.whitespace,
     // `states` is an array of state names defined in "The Basics"
-    local: $.map(states, function(state) { return { value: state }; })
+    local: $.map(states, function(state) {
+        return {
+            value: state,
+            href: "#" + state,
+            key: state,
+        };
+    })
 });
  
 // kicks off the loading/processing of `local` and `prefetch`
 stateHound.initialize();
 
-var StatesDataset = React.createClass({
-    mixins: [
-        searchbar.mixins.BaseDataset,
-        searchbar.mixins.BloodhoundDataset(stateHound.ttAdapter(), true)],
-
-    render: function() {
-        var renderedResults = [];
-        for (var i = 0; i < this.state.results.length; ++i) {
-            var isSelected = this.props.highlightedIndex === i;
-            var className = isSelected ? "selected" : "";
-
-            var highlighted = searchbar.utils.highlight(
-                this.state.results[i].value,
-                Bloodhound.tokenizers.whitespace(this.props.query),
-                "<b>",
-                "</b>"
-            );
-
-            renderedResults.push(
-                <a
-                    href="#"
-                    onMouseOver={this.getHoverHandler(i)}
-                    className={className}
-                    dangerouslySetInnerHTML={{__html: highlighted}}></a>
-            );
-        }
-
-        this.numItems = this.state.results.length;
-
-        return <div>{renderedResults}</div>;
-    }
-});
+var StatesDataset = searchbar.datasets.SimpleBloodhound(stateHound.ttAdapter(),
+                                                        true);
 
 var datasetConfigs = {
     states: {component: StatesDataset},
 };
 
 React.renderComponent(
-    searchbar.componentStore.Search({datasetConfigs: datasetConfigs}),
+    searchbar.components.Search({datasetConfigs: datasetConfigs}),
     document.getElementById("searchbar-the-basics")
 );
