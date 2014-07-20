@@ -19,10 +19,18 @@ root.componentStore.SearchInput = React.createClass({
 
     render: function() {
         return (
-            <input
-                type="text"
-                onKeyDown={this.onKeyDown}
-                onChange={this.queryChanged} />
+            <div style={{height: 30, width: 100}}>
+                <input
+                    type="text"
+                    onKeyDown={this.onKeyDown}
+                    onChange={this.queryChanged}
+                    style={{position: "absolute", background: "transparent", zIndex: 2}} />
+                <input
+                    type="text"
+                    value={this.props.fadedText}
+                    readOnly
+                    style={{color: "#CCC", position: "absolute", background: "transparent", zIndex: 1}} />
+            </div>
         );
     }
 });
@@ -173,7 +181,8 @@ root.componentStore.Search = React.createClass({
                 <root.componentStore.SearchInput
                     ref="input"
                     controller={this}
-                    query={this.state.query} />
+                    query={this.state.query}
+                    fadedText={this.state.fadedText} />
                 <root.componentStore.SearchDropdown
                     ref="dropdown"
                     controller={this}
@@ -237,8 +246,8 @@ var StatesDataset = React.createClass({
     //     // });
     // },
 
-    componentWillReceiveProps: function(nextProps) {
-        if (this.props.query != nextProps.query) {
+    componentDidUpdate: function(prevProps, prevState) {
+        if (this.props.query != prevProps.query) {
             this.doQuery();
         }
     },
@@ -250,11 +259,16 @@ var StatesDataset = React.createClass({
     },
 
     setResults: function(results) {
-        this.state.results = results;
+        this.setState({results: results});
+        if (results.length > 0 && results[0].value.indexOf(this.props.query) === 0) {
+            this.props.controller.setState({fadedText: results[0].value});
+        } else {
+            this.props.controller.setState({fadedText: ""});
+        }
     },
 
     doQuery: function() {
-        hound(this.props.query, this.setResults.bind(this));
+        hound(this.props.query, this.setResults);
     },
 
     render: function() {
