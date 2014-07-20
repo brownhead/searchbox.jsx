@@ -1,11 +1,11 @@
 /** @jsx React.DOM */
 
-var root = {};
+var searchbar = {};
 
-root.componentStore = {};
-root.mixins = {};
+searchbar.componentStore = {};
+searchbar.mixins = {};
 
-root.componentStore.SearchInput = React.createClass({
+searchbar.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {
         if (event.key === "ArrowDown") {
             this.props.controller.setHighlightedItemRelative(true);
@@ -41,7 +41,7 @@ root.componentStore.SearchInput = React.createClass({
     }
 });
 
-root.componentStore.Search = React.createClass({
+searchbar.componentStore.Search = React.createClass({
     getInitialState: function() {
         // The default ordering is alphabetic
         var ordering = _.map(this.props.datasetConfigs, function(v, k) {
@@ -154,7 +154,7 @@ root.componentStore.Search = React.createClass({
 
         return (
             <div>
-                <root.componentStore.SearchInput
+                <searchbar.componentStore.SearchInput
                     ref="input"
                     controller={this}
                     query={this.state.query}
@@ -167,7 +167,7 @@ root.componentStore.Search = React.createClass({
     }
 });
 
-root.mixins.BaseDataset = {
+searchbar.mixins.BaseDataset = {
     getHoverHandler: function(index) {
         var that = this;
         return function() {
@@ -177,7 +177,7 @@ root.mixins.BaseDataset = {
     }
 };
 
-root.mixins.BloodhoundDataset = function(source, setFadedText) { return {
+searchbar.mixins.BloodhoundDataset = function(source, setFadedText) { return {
     getInitialState: function() {
         return {
             results: [],
@@ -246,8 +246,8 @@ var hound = substringMatcher(states);
 
 var StatesDataset = React.createClass({
     mixins: [
-        root.mixins.BaseDataset,
-        root.mixins.BloodhoundDataset(hound, true)],
+        searchbar.mixins.BaseDataset,
+        searchbar.mixins.BloodhoundDataset(hound, true)],
 
     render: function() {
         var renderedResults = [];
@@ -274,6 +274,6 @@ var datasetConfigs = {
 };
 
 React.renderComponent(
-    root.componentStore.Search({datasetConfigs: datasetConfigs}),
+    searchbar.componentStore.Search({datasetConfigs: datasetConfigs}),
     document.getElementById("search-bar")
 );
