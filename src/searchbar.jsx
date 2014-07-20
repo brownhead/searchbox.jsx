@@ -23,23 +23,49 @@ root.componentStore.SearchInput = React.createClass({
         this.props.controller.setState({"query": event.target.value});
     },
 
+    shouldShowFaded: function() {
+        if (this.props.fadedText.length < this.props.query.length) {
+            return false;
+        }
+
+        for (var i = 0; i < this.props.query.length; ++i) {
+            if (this.props.fadedText[i] !== this.props.query[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    },
+
     render: function() {
-        return (
-            // TODO(johnsullivan): Use JQuery UI to accurately position things.
-            <div className="searchbar-input-container" style={{height: 30, width: 100}}>
+        var inputs = [];
+        inputs.push(
+            <input
+                key="foreground"
+                className="searchbar-foreground-input"
+                type="text"
+                value={this.props.query}
+                onKeyDown={this.onKeyDown}
+                onChange={this.queryChanged}
+                style={{position: "absolute", background: "transparent", zIndex: 2}} />
+        );
+
+        if (this.shouldShowFaded()) {
+            inputs.push(
                 <input
-                    className="searchbar-foreground-input"
-                    type="text"
-                    value={this.props.query}
-                    onKeyDown={this.onKeyDown}
-                    onChange={this.queryChanged}
-                    style={{position: "absolute", background: "transparent", zIndex: 2}} />
-                <input
+                    key="faded"
                     className="searchbar-faded-input"
                     type="text"
                     value={this.props.fadedText}
                     readOnly
                     style={{color: "#CCC", position: "absolute", background: "transparent", zIndex: 1}} />
+            );
+        }
+
+        return (
+            // TODO(johnsullivan): Use JQuery UI to accurately position things.
+            <div className="searchbar-input-container" style={{height: 30, width: 100}}>
+                {inputs}
             </div>
         );
     }
@@ -56,6 +82,7 @@ root.componentStore.Search = React.createClass({
         return {
             ordering: ordering,
             query: "",
+            fadedText: "",
             highlightedItem: null,
         }
     },
