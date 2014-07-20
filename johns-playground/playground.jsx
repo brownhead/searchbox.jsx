@@ -42,16 +42,6 @@ root.componentStore.SearchInput = React.createClass({
 });
 
 root.componentStore.Search = React.createClass({
-    // props.datasetConfigs:object<
-    //     name:str => configuration:object< prop:str => value:any > >
-    // Configuration for each data set.
-
-    // state.ordering:list< name:str >
-    // Defines which result sets, and in which order, are displayed.
-
-    // state.query:str
-    // The currently typed in query (what is displayed to the user)
-
     getInitialState: function() {
         // The default ordering is alphabetic
         var ordering = _.map(this.props.datasetConfigs, function(v, k) {
@@ -185,7 +175,7 @@ root.mixins.BaseDataset = {
                 highlightedItem: {datasetName: that.props.key, index: index}});
         }
     }
-}
+};
 
 root.mixins.BloodhoundDataset = function(source, setFadedText) { return {
     getInitialState: function() {
@@ -266,7 +256,7 @@ var StatesDataset = React.createClass({
             var className = isSelected ? "selected" : "";
 
             renderedResults.push(
-                <a href="#"onMouseOver={this.getHoverHandler(i)}
+                <a href="#" onMouseOver={this.getHoverHandler(i)}
                         className={className}>
                     {this.state.results[i]}</a>
             );
