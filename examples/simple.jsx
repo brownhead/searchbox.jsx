@@ -44,7 +44,7 @@ var StatesDataset = React.createClass({
 
                 this.numItems = this.state.results.length;
 
-                return <ul>{renderedResults}</ul>;
+                return <div>{renderedResults}</div>;
         }
 });
 
