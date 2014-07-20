@@ -177,6 +177,16 @@ root.componentStore.Search = React.createClass({
     }
 });
 
+root.mixins.BaseDataset = {
+    getHoverHandler: function(index) {
+        var that = this;
+        return function() {
+            that.props.controller.setState({
+                highlightedItem: {datasetName: that.props.key, index: index}});
+        }
+    }
+}
+
 root.mixins.BloodhoundDataset = function(source, setFadedText) { return {
     getInitialState: function() {
         return {
@@ -245,7 +255,9 @@ var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
 var hound = substringMatcher(states);
 
 var StatesDataset = React.createClass({
-    mixins: [root.mixins.BloodhoundDataset(hound, true)],
+    mixins: [
+        root.mixins.BaseDataset,
+        root.mixins.BloodhoundDataset(hound, true)],
 
     render: function() {
         var renderedResults = [];
@@ -253,12 +265,11 @@ var StatesDataset = React.createClass({
             var isSelected = this.props.highlightedIndex === i;
             var className = isSelected ? "selected" : "";
 
-            var that = this;
-            var hover = (function(index, event) {
-                that.props.controller.setState({highlightedItem: {name: that.props.key, index: index}});
-            }).bind(this, i);
-
-            renderedResults.push(<a href="#" onMouseOver={hover} className={className}>{this.state.results[i]}</a>);
+            renderedResults.push(
+                <a href="#"onMouseOver={this.getHoverHandler(i)}
+                        className={className}>
+                    {this.state.results[i]}</a>
+            );
         }
 
         this.numItems = this.state.results.length;
