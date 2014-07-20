@@ -12,16 +12,17 @@ root.componentStore.SearchInput = React.createClass({
             this.props.controller.setHighlightedItemRelative(false);
         } else if (event.key === "Tab" && this.props.fadedText) {
             event.preventDefault();
-            this.props.controller.onQueryChanged(this.props.fadedText);
+            this.props.controller.setState({"query": this.props.fadedText});
         }
     },
 
     queryChanged: function(event) {
-        this.props.controller.onQueryChanged(event.target.value);
+        this.props.controller.setState({"query": event.target.value});
     },
 
     render: function() {
         return (
+            // TODO(johnsullivan): Use JQuery UI to accurately position things.
             <div style={{height: 30, width: 100}}>
                 <input
                     type="text"
@@ -87,8 +88,6 @@ root.componentStore.Search = React.createClass({
     // The currently typed in query (what is displayed to the user)
 
     getInitialState: function() {
-        this.datasetSizes = {};
-
         // The default ordering is alphabetic
         var ordering = _.map(this.props.datasetConfigs, function(v, k) {
             return k;
@@ -102,12 +101,9 @@ root.componentStore.Search = React.createClass({
         }
     },
 
-    onQueryChanged: function(query) {
-        this.setState({query: query});
-    },
-
     setHighlightedItemRelative: function(moveDown) {
         var that = this;
+
         var numItemsIn = function(name) {
             return (that.refs.dropdown
                 .getDatasetComponentByName(name).numItems);
@@ -240,16 +236,6 @@ var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
 var hound = substringMatcher(states);
 
 var StatesDataset = React.createClass({
-    // onPropsChange: function(event) {
-    //     console.log("searching for " + this.props.controller.query);
-
-    //     // bloodhound_go(this.props.controller.query, function(datums) {
-    //     //     this.props.controller.setDatasetResults("suggestions", datums);
-    //     //     this.props.controller.dispatchEvent("custom:updateFooter")
-    //     //     // this.props.controller.components["footer"].updateMaybe();
-    //     // });
-    // },
-
     componentDidUpdate: function(prevProps, prevState) {
         if (this.props.query != prevProps.query) {
             this.doQuery();
@@ -283,7 +269,7 @@ var StatesDataset = React.createClass({
 
             var that = this;
             var hover = (function(index, event) {
-                that.props.controller.setHighlightedItem(that.props.key, index);
+                that.props.controller.setState({highlightedItem: {name: that.props.key, index: index}});
             }).bind(this, i);
 
             renderedResults.push(<a href="#" onMouseOver={hover} className={className}>{this.state.results[i]}</a>);
@@ -297,6 +283,7 @@ var StatesDataset = React.createClass({
 
 var datasetConfigs = {
     states: {component: StatesDataset},
+    tacos: {component: StatesDataset},
 };
 
 React.renderComponent(
