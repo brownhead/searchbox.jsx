@@ -26,14 +26,16 @@ root.componentStore.SearchInput = React.createClass({
     render: function() {
         return (
             // TODO(johnsullivan): Use JQuery UI to accurately position things.
-            <div style={{height: 30, width: 100}}>
+            <div className="searchbar-input-container" style={{height: 30, width: 100}}>
                 <input
+                    className="searchbar-foreground-input"
                     type="text"
                     value={this.props.query}
                     onKeyDown={this.onKeyDown}
                     onChange={this.queryChanged}
                     style={{position: "absolute", background: "transparent", zIndex: 2}} />
                 <input
+                    className="searchbar-faded-input"
                     type="text"
                     value={this.props.fadedText}
                     readOnly
@@ -155,13 +157,13 @@ root.componentStore.Search = React.createClass({
         }
 
         return (
-            <div>
+            <div className="searchbar-container">
                 <root.componentStore.SearchInput
                     ref="input"
                     controller={this}
                     query={this.state.query}
                     fadedText={this.state.fadedText} />
-                <div>
+                <div className="searchbar-dataset-container">
                     {datasets}
                 </div>
             </div>
