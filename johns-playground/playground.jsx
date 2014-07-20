@@ -38,18 +38,22 @@ root.componentStore.SearchDropdown = React.createClass({
             }
             children.push(
                 curConfig.component({
+                    ref: curName,
                     key: curName,
                     config: curConfig,
                     query: this.props.query,
                     highlightedItem: this.props.highlightedItem,
-                    registerDatasetSize: this.props.registerDatasetSize,
                     setHighlightedItem: this.props.setHighlightedItem,
                 })
             );
         }
 
         return <div>{children}</div>;
-    }
+    },
+
+    getDatasetComponentByName: function(name) {
+        return this.refs[name] || null;
+    },
 });
 
 root.componentStore.Search = React.createClass({
@@ -84,18 +88,24 @@ root.componentStore.Search = React.createClass({
     },
 
     setHighlightedItemRelative: function(moveDown) {
+        var that = this;
+        var numItemsIn = function(name) {
+            return (that.refs.dropdown
+                .getDatasetComponentByName(name).numItems);
+        };
+
         if (this.state.highlightedItem === null) {
             var selectedSet = null;
             if (moveDown) {
                 for (var i = 0; i < this.state.ordering.length; ++i) {
-                    if (this.datasetSizes[this.state.ordering[i]] !== 0) {
+                    if (numItemsIn(this.state.ordering[i]) !== 0) {
                         selectedSet = this.state.ordering[i];
                         break;
                     }
                 }
             } else {
                 for (var i = this.state.ordering.length - 1; i >= 0; --i) {
-                    if (this.datasetSizes[this.state.ordering[i]] !== 0) {
+                    if (numItemsIn(this.state.ordering[i]) !== 0) {
                         selectedSet = this.state.ordering[i];
                         break;
                     }
@@ -109,13 +119,13 @@ root.componentStore.Search = React.createClass({
             this.setState({
                 highlightedItem: {
                     datasetName: selectedSet,
-                    index: moveDown ? 0 : this.datasetSizes[selectedSet] - 1,
+                    index: moveDown ? 0 : numItemsIn(selectedSet) - 1,
                 },
             });
         } else {
             var newIndex = this.state.highlightedItem.index + (moveDown? 1 : -1);
 
-            if (newIndex >= 0 && newIndex < this.datasetSizes[this.state.highlightedItem.datasetName]) {
+            if (newIndex >= 0 && newIndex < numItemsIn(this.state.highlightedItem.datasetName)) {
                 // We're moving within a dataset
                 this.setState({
                     highlightedItem: {
@@ -131,14 +141,14 @@ root.componentStore.Search = React.createClass({
                 var selectedSet = null;
                 if (moveDown) {
                     for (var i = curSetIndex + 1; i < this.state.ordering.length; ++i) {
-                        if (this.datasetSizes[this.state.ordering[i]] !== 0) {
+                        if (numItemsIn(this.state.ordering[i]) !== 0) {
                             selectedSet = this.state.ordering[i];
                             break;
                         }
                     }
                 } else {
                     for (var i = curSetIndex - 1; i > 0; --i) {
-                        if (this.datasetSizes[this.state.ordering[i]] !== 0) {
+                        if (numItemsIn(this.state.ordering[i]) !== 0) {
                             selectedSet = this.state.ordering[i];
                             break;
                         }
@@ -150,7 +160,7 @@ root.componentStore.Search = React.createClass({
                 } else {
                     this.setState({highlightedItem: {
                         datasetName: selectedSet,
-                        index: moveDown ? 0 : this.datasetSizes[selectedSet] - 1,
+                        index: moveDown ? 0 : numItemsIn(selectedSet) - 1,
                     }});
                 }
             }
@@ -161,24 +171,21 @@ root.componentStore.Search = React.createClass({
         this.setState({highlightedItem: {datasetName: name, index: index}});
     },
 
-    registerDatasetSize: function(name, size) {
-        this.datasetSizes[name] = size;
-    },
-
     render: function() {
         return (
             <div>
                 <root.componentStore.SearchInput
+                    ref="input"
                     onQueryChanged={this.onQueryChanged}
                     query={this.state.query}
                     setHighlightedItemRelative={this.setHighlightedItemRelative} />
                 <root.componentStore.SearchDropdown
+                    ref="dropdown"
                     query={this.state.query}
                     datasetConfigs={this.props.datasetConfigs}
                     ordering={this.state.ordering}
                     highlightedItem={this.state.highlightedItem}
-                    setHighlightedItem={this.setHighlightedItem}
-                    registerDatasetSize={this.registerDatasetSize} />
+                    setHighlightedItem={this.setHighlightedItem} />
             </div>
         );
     }
@@ -275,7 +282,7 @@ var StatesDataset = React.createClass({
             renderedResults.push(<a href="#" onMouseOver={hover} className={className}>{this.state.results[i]}</a>);
         }
 
-        this.props.registerDatasetSize(this.props.key, renderedResults.length);
+        this.numItems = this.state.results.length;
 
         return <ul>{renderedResults}</ul>;
     }
