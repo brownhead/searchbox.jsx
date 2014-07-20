@@ -59,7 +59,13 @@ root.componentStore.Search = React.createClass({
             highlightedItem: null,
         }
     },
-
+    componentDidMount: function(){
+        $(this.refs.results.getDOMNode()).position({
+            my: "left top",
+            at: "left bottom",
+            of: $(this.refs.input.getDOMNode()),
+        });
+    },
     setHighlightedItemRelative: function(moveDown) {
         var that = this;
 
@@ -156,6 +162,9 @@ root.componentStore.Search = React.createClass({
             );
         }
 
+        var resultsDiv = {
+            position: "absolute"
+        }
         return (
             <div className="searchbar-container">
                 <root.componentStore.SearchInput
@@ -163,7 +172,7 @@ root.componentStore.Search = React.createClass({
                     controller={this}
                     query={this.state.query}
                     fadedText={this.state.fadedText} />
-                <div className="searchbar-dataset-container">
+                <div style={resultsDiv} ref="results" className="searchbar-dataset-container">
                     {datasets}
                 </div>
             </div>
