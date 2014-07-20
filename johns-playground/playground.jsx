@@ -7,14 +7,14 @@ root.componentStore = [];
 root.componentStore.SearchInput = React.createClass({
     onKeyDown: function(event) {
         if (event.key === "ArrowDown") {
-            this.props.setHighlightedItemRelative(true);
+            this.props.controller.setHighlightedItemRelative(true);
         } else if (event.key === "ArrowUp") {
-            this.props.setHighlightedItemRelative(false);
+            this.props.controller.setHighlightedItemRelative(false);
         }
     },
 
     queryChanged: function(event) {
-        this.props.onQueryChanged(event.target.value);
+        this.props.controller.onQueryChanged(event.target.value);
     },
 
     render: function() {
@@ -36,14 +36,21 @@ root.componentStore.SearchDropdown = React.createClass({
             if (!curConfig) {
                 throw Error("Unknown dataset " + curName + " in ordering.");
             }
+
+            var highlightedIndex = -1;
+            if (this.props.highlightedItem &&
+                    curName === this.props.highlightedItem.datasetName) {
+                highlightedIndex = this.props.highlightedItem.index;
+            }
+
             children.push(
                 curConfig.component({
                     ref: curName,
                     key: curName,
+                    controller: this.props.controller,
                     config: curConfig,
                     query: this.props.query,
-                    highlightedItem: this.props.highlightedItem,
-                    setHighlightedItem: this.props.setHighlightedItem,
+                    highlightedIndex: highlightedIndex,
                 })
             );
         }
@@ -94,23 +101,27 @@ root.componentStore.Search = React.createClass({
                 .getDatasetComponentByName(name).numItems);
         };
 
-        if (this.state.highlightedItem === null) {
-            var selectedSet = null;
+        var findNextDataset = function(start) {
             if (moveDown) {
-                for (var i = 0; i < this.state.ordering.length; ++i) {
-                    if (numItemsIn(this.state.ordering[i]) !== 0) {
-                        selectedSet = this.state.ordering[i];
-                        break;
+                for (var i = start; i < that.state.ordering.length; ++i) {
+                    if (numItemsIn(that.state.ordering[i]) !== 0) {
+                        return that.state.ordering[i];
                     }
                 }
             } else {
-                for (var i = this.state.ordering.length - 1; i >= 0; --i) {
-                    if (numItemsIn(this.state.ordering[i]) !== 0) {
-                        selectedSet = this.state.ordering[i];
-                        break;
+                for (var i = start; i >= 0; --i) {
+                    if (numItemsIn(that.state.ordering[i]) !== 0) {
+                        return that.state.ordering[i];
                     }
                 }
             }
+
+            return null;
+        };
+
+        if (this.state.highlightedItem === null) {
+            var selectedSet = findNextDataset(
+                moveDown ? 0: this.state.ordering.length - 1);
 
             if (selectedSet === null) {
                 return;
@@ -138,22 +149,7 @@ root.componentStore.Search = React.createClass({
                 var curSetIndex = $.inArray(
                     this.state.highlightedItem.datasetName,
                     this.state.ordering);
-                var selectedSet = null;
-                if (moveDown) {
-                    for (var i = curSetIndex + 1; i < this.state.ordering.length; ++i) {
-                        if (numItemsIn(this.state.ordering[i]) !== 0) {
-                            selectedSet = this.state.ordering[i];
-                            break;
-                        }
-                    }
-                } else {
-                    for (var i = curSetIndex - 1; i > 0; --i) {
-                        if (numItemsIn(this.state.ordering[i]) !== 0) {
-                            selectedSet = this.state.ordering[i];
-                            break;
-                        }
-                    }
-                }
+                var selectedSet = findNextDataset(curSetIndex + (moveDown ? 1 : -1));
 
                 if (selectedSet === null) {
                     this.setState({highlightedItem: null});
@@ -176,16 +172,15 @@ root.componentStore.Search = React.createClass({
             <div>
                 <root.componentStore.SearchInput
                     ref="input"
-                    onQueryChanged={this.onQueryChanged}
-                    query={this.state.query}
-                    setHighlightedItemRelative={this.setHighlightedItemRelative} />
+                    controller={this}
+                    query={this.state.query} />
                 <root.componentStore.SearchDropdown
                     ref="dropdown"
+                    controller={this}
                     query={this.state.query}
                     datasetConfigs={this.props.datasetConfigs}
                     ordering={this.state.ordering}
-                    highlightedItem={this.state.highlightedItem}
-                    setHighlightedItem={this.setHighlightedItem} />
+                    highlightedItem={this.state.highlightedItem} />
             </div>
         );
     }
@@ -266,17 +261,13 @@ var StatesDataset = React.createClass({
     render: function() {
         var renderedResults = [];
         for (var i = 0; i < this.state.results.length; ++i) {
-            var highlighted = this.props.highlightedItem;
-            var isSelected = (
-                highlighted !== null &&
-                highlighted.datasetName === this.props.key &&
-                highlighted.index === i);
+            var isSelected = this.props.highlightedIndex === i;
             var className = isSelected ? "selected" : "";
 
             var that = this;
             var hover = (function(index, event) {
                 console.log(that.props.key, index);
-                that.props.setHighlightedItem(that.props.key, index);
+                that.props.controller.setHighlightedItem(that.props.key, index);
             }).bind(this, i);
 
             renderedResults.push(<a href="#" onMouseOver={hover} className={className}>{this.state.results[i]}</a>);
